@@ -1,0 +1,249 @@
+#include <stdio.h>
+#include <at89lp51rd2.h>
+#include "hardware.h"
+
+// ~C51~ 
+ 
+#define CLK 22118400L
+#define BAUD 115200L
+#define ONE_USEC (CLK/1000000L) // Timer reload for one microsecond delay
+#define BRG_VAL (0x100-(CLK/(16L*BAUD)))
+
+#define ADC_CE  P2_0
+#define BB_MOSI P2_1
+#define BB_MISO P2_2
+#define BB_SCLK P2_3
+
+#define MUSIC1 P2_5
+
+#define C4 262
+
+
+#define C4_RELOAD (65536 - (CLK/C4))
+
+unsigned char SPIWrite(unsigned char out_byte)
+{
+	// In the 8051 architecture both ACC and B are bit addressable!
+	ACC=out_byte;
+	
+	BB_MOSI=ACC_7; BB_SCLK=1; B_7=BB_MISO; BB_SCLK=0;
+	BB_MOSI=ACC_6; BB_SCLK=1; B_6=BB_MISO; BB_SCLK=0;
+	BB_MOSI=ACC_5; BB_SCLK=1; B_5=BB_MISO; BB_SCLK=0;
+	BB_MOSI=ACC_4; BB_SCLK=1; B_4=BB_MISO; BB_SCLK=0;
+	BB_MOSI=ACC_3; BB_SCLK=1; B_3=BB_MISO; BB_SCLK=0;
+	BB_MOSI=ACC_2; BB_SCLK=1; B_2=BB_MISO; BB_SCLK=0;
+	BB_MOSI=ACC_1; BB_SCLK=1; B_1=BB_MISO; BB_SCLK=0;
+	BB_MOSI=ACC_0; BB_SCLK=1; B_0=BB_MISO; BB_SCLK=0;
+	
+	return B;
+}
+
+unsigned char _c51_external_startup(void)
+{
+	AUXR=0B_0001_0001; // 1152 bytes of internal XDATA, P4.4 is a general purpose I/O
+
+	P0M0=0x00; P0M1=0x00;    
+	P1M0=0x00; P1M1=0x00;    
+	P2M0=0x00; P2M1=0x00;    
+	P3M0=0x00; P3M1=0x00;    
+    PCON|=0x80;
+	SCON = 0x52;
+    BDRCON=0;
+    #if (CLK/(16L*BAUD))>0x100
+    #error Can not set baudrate
+    #endif
+    BRL=BRG_VAL;
+    BDRCON=BRR|TBCK|RBCK|SPD;
+    
+	CLKREG=0x00; // TPS=0000B
+
+    return 0;
+}
+
+void wait_us (unsigned char x)
+{
+	unsigned int j;
+	
+	TR0=0; // Stop timer 0
+	TMOD&=0xf0; // Clear the configuration bits for timer 0
+	TMOD|=0x01; // Mode 1: 16-bit timer
+	
+	if(x>5) x-=5; // Subtract the overhead
+	else x=1;
+	
+	j=-ONE_USEC*x;
+	TF0=0;
+	TH0=j/0x100;
+	TL0=j%0x100;
+	TR0=1; // Start timer 0
+	while(TF0==0); //Wait for overflow
+}
+
+void waitms (unsigned int ms)
+{
+	unsigned int j;
+	unsigned char k;
+	for(j=0; j<ms; j++)
+		for (k=0; k<4; k++) wait_us(250);
+}
+
+/*Read 10 bits from the MCP3008 ADC converter*/
+unsigned int volatile GetADC(unsigned char channel)
+{
+	unsigned int adc;
+	unsigned char spid;
+
+	ADC_CE=0; //Activate the MCP3008 ADC.
+	
+	SPIWrite(0x01);//Send the start bit.
+	spid=SPIWrite((channel*0x10)|0x80);	//Send single/diff* bit, D2, D1, and D0 bits.
+	adc=((spid & 0x03)*0x100);//spid has the two most significant bits of the result.
+	spid=SPIWrite(0x00);//It doesn't matter what we send now.
+	adc+=spid;//spid contains the low part of the result. 
+	
+	ADC_CE=1; //Deactivate the MCP3008 ADC.
+		
+	return adc;
+}
+
+void LCD_pulse (void)
+{
+	LCD_E=1;
+	wait_us(40);
+	LCD_E=0;
+}
+
+void LCD_byte (unsigned char x)
+{
+	// The accumulator in the 8051 is bit addressable!
+	ACC=x; //Send high nible
+	LCD_D7=ACC_7;
+	LCD_D6=ACC_6;
+	LCD_D5=ACC_5;
+	LCD_D4=ACC_4;
+	LCD_pulse();
+	wait_us(40);
+	ACC=x; //Send low nible
+	LCD_D7=ACC_3;
+	LCD_D6=ACC_2;
+	LCD_D5=ACC_1;
+	LCD_D4=ACC_0;
+	LCD_pulse();
+}
+
+void WriteData (unsigned char x)
+{
+	LCD_RS=1;
+	LCD_byte(x);
+	waitms(2);
+}
+
+void WriteCommand (unsigned char x)
+{
+	LCD_RS=0;
+	LCD_byte(x);
+	waitms(5);
+}
+
+void LCD_4BIT (void)
+{
+	LCD_E=0; // Resting state of LCD's enable is zero
+	//LCD_RW=0; // We are only writing to the LCD in this program.  Connect pin to GND.
+	waitms(20);
+	// First make sure the LCD is in 8-bit mode and then change to 4-bit mode
+	WriteCommand(0x33);
+	WriteCommand(0x33);
+	WriteCommand(0x32); // Change to 4-bit mode
+
+	// Configure the LCD
+	WriteCommand(0x28);
+	WriteCommand(0x0c);
+	WriteCommand(0x01); // Clear screen command (takes some time)
+	waitms(20); // Wait for clear screen command to finsih.
+}
+
+void LCDprint(char * string, unsigned char line, bit clear)
+{
+	int j;
+
+	WriteCommand(line==2?0xc0:0x80);
+	waitms(5);
+	for(j=0; string[j]!=0; j++)	WriteData(string[j]);// Write the message
+	if(clear) for(; j<CHARS_PER_LINE; j++) WriteData(' '); // Clear the rest of the line
+}
+void c4note(void){
+	TR0=0; // Stop timer 0
+	TMOD&=0xf0; // Clear the configuration bits for timer 0
+	TMOD|=0x01; // Mode 1: 16-bit timer
+	
+	TH0 = C4_RELOAD;
+	TL0 = C4_RELOAD;
+	
+	RH0 = C4_RELOAD;
+	RL0 = C4_RELOAD;
+	
+	ET0 = 1;
+	TR0 = 1;
+	
+	waitms(2000);
+}
+void main (void)
+{
+	#define VLED 2.03673 // Measured with multimeter
+	float y, Vdd;
+	unsigned char i = 0;
+	char string[5] = "lmao";
+	char Voltage[6] = "";
+	int count;
+	char Coins[2] = "";
+	int flag;
+	int newround;
+
+	waitms(500);	
+	printf("\n\nAT89LP51Rx2 SPI ADC test program.\n");
+
+	Vdd=4.09622;
+	LCD_4BIT();
+	LCDprint("Coins Collected:", 1, 1); //16 spaces
+	LCDprint("0", 2, 1);
+	count = 0;
+	flag = 0;
+	newround = 1;
+	
+	
+	while(1)
+	{
+		MUSIC1 = 0;
+	//	waitms(5000);
+		y=(GetADC(i)*Vdd)/1023.0; // Convert the 10-bit integer from the ADC to voltage
+		printf("V:%f\n",y);
+			//if(y>3){
+			//	printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			//	}
+			if(y>3.23){
+				MUSIC1 = 1;
+				count++;
+				printf("%d", count);
+				sprintf(Coins, "%d", count);
+				LCDprint(Coins, 2 ,1);
+				printf("flag: %d", flag);
+				while(1){
+				//printf("Wait");
+				MUSIC1 = 1;
+				waitms(500);
+				y=(GetADC(i)*Vdd)/1023.0;
+				printf("V: %f\n",y);
+				if(y<1){
+					flag = 0;
+					printf("flag: %d", flag);
+					break;
+				}
+			}
+		}
+	
+		//printf("\r"); // Carriage return only.
+	}
+}
+
+				
+				

@@ -1,0 +1,1285 @@
+0000              1   ;--------------------------------------------------------
+0000              2   ; File Created by C51
+0000              3   ; Version 1.0.0 #1069 (Apr 23 2015) (MSVC)
+0000              4   ; This file was generated Tue Apr 05 18:47:26 2022
+0000              5   ;--------------------------------------------------------
+                  5   $name adc_spi
+                  6   $optc51 --model-small
+                  7   $printf_float
+0000              9            R_DSEG    segment data
+0000             10            R_CSEG    segment code
+0000             11            R_BSEG    segment bit
+0000             12            R_XSEG    segment xdata
+0000             13            R_PSEG    segment xdata
+0000             14            R_ISEG    segment idata
+0000             15            R_OSEG    segment data overlay
+0000             16            BIT_BANK  segment data overlay
+0000             17            R_HOME    segment code
+0000             18            R_GSINIT  segment code
+0000             19            R_IXSEG   segment xdata
+0000             20            R_CONST   segment code
+0000             21            R_XINIT   segment code
+0000             22            R_DINIT   segment code
+0000             23   
+0000             24   ;--------------------------------------------------------
+0000             25   ; Public variables in this module
+0000             26   ;--------------------------------------------------------
+0000             27            public _main
+0000             28            public _c4note
+0000             29            public _LCDprint
+0000             30            public _LCD_4BIT
+0000             31            public _WriteCommand
+0000             32            public _WriteData
+0000             33            public _LCD_byte
+0000             34            public _LCD_pulse
+0000             35            public _GetADC
+0000             36            public __c51_external_startup
+0000             37            public _SPIWrite
+0000             38            public _LCDprint_PARM_3
+0000             39            public _LCDprint_PARM_2
+0000             40            public _wait_us
+0000             41            public _waitms
+0000             42   ;--------------------------------------------------------
+0000             43   ; Special Function Registers
+0000             44   ;--------------------------------------------------------
+0000             45   _ACC            DATA 0xe0
+0000             46   _B              DATA 0xf0
+0000             47   _PSW            DATA 0xd0
+0000             48   _SP             DATA 0x81
+0000             49   _SPX            DATA 0xef
+0000             50   _DPL            DATA 0x82
+0000             51   _DPH            DATA 0x83
+0000             52   _DPLB           DATA 0xd4
+0000             53   _DPHB           DATA 0xd5
+0000             54   _PAGE           DATA 0xf6
+0000             55   _AX             DATA 0xe1
+0000             56   _BX             DATA 0xf7
+0000             57   _DSPR           DATA 0xe2
+0000             58   _FIRD           DATA 0xe3
+0000             59   _MACL           DATA 0xe4
+0000             60   _MACH           DATA 0xe5
+0000             61   _PCON           DATA 0x87
+0000             62   _AUXR           DATA 0x8e
+0000             63   _AUXR1          DATA 0xa2
+0000             64   _DPCF           DATA 0xa1
+0000             65   _CKRL           DATA 0x97
+0000             66   _CKCKON0        DATA 0x8f
+0000             67   _CKCKON1        DATA 0xaf
+0000             68   _CKSEL          DATA 0x85
+0000             69   _CLKREG         DATA 0xae
+0000             70   _OSCCON         DATA 0x85
+0000             71   _IE             DATA 0xa8
+0000             72   _IEN0           DATA 0xa8
+0000             73   _IEN1           DATA 0xb1
+0000             74   _IPH0           DATA 0xb7
+0000             75   _IP             DATA 0xb8
+0000             76   _IPL0           DATA 0xb8
+0000             77   _IPH1           DATA 0xb3
+0000             78   _IPL1           DATA 0xb2
+0000             79   _P0             DATA 0x80
+0000             80   _P1             DATA 0x90
+0000             81   _P2             DATA 0xa0
+0000             82   _P3             DATA 0xb0
+0000             83   _P4             DATA 0xc0
+0000             84   _P0M0           DATA 0xe6
+0000             85   _P0M1           DATA 0xe7
+0000             86   _P1M0           DATA 0xd6
+0000             87   _P1M1           DATA 0xd7
+0000             88   _P2M0           DATA 0xce
+0000             89   _P2M1           DATA 0xcf
+0000             90   _P3M0           DATA 0xc6
+0000             91   _P3M1           DATA 0xc7
+0000             92   _P4M0           DATA 0xbe
+0000             93   _P4M1           DATA 0xbf
+0000             94   _SCON           DATA 0x98
+0000             95   _SBUF           DATA 0x99
+0000             96   _SADEN          DATA 0xb9
+0000             97   _SADDR          DATA 0xa9
+0000             98   _BDRCON         DATA 0x9b
+0000             99   _BRL            DATA 0x9a
+0000            100   _TCON           DATA 0x88
+0000            101   _TMOD           DATA 0x89
+0000            102   _TCONB          DATA 0x91
+0000            103   _TL0            DATA 0x8a
+0000            104   _TH0            DATA 0x8c
+0000            105   _TL1            DATA 0x8b
+0000            106   _TH1            DATA 0x8d
+0000            107   _RL0            DATA 0xf2
+0000            108   _RH0            DATA 0xf4
+0000            109   _RL1            DATA 0xf3
+0000            110   _RH1            DATA 0xf5
+0000            111   _WDTRST         DATA 0xa6
+0000            112   _WDTPRG         DATA 0xa7
+0000            113   _T2CON          DATA 0xc8
+0000            114   _T2MOD          DATA 0xc9
+0000            115   _RCAP2H         DATA 0xcb
+0000            116   _RCAP2L         DATA 0xca
+0000            117   _TH2            DATA 0xcd
+0000            118   _TL2            DATA 0xcc
+0000            119   _SPCON          DATA 0xc3
+0000            120   _SPSTA          DATA 0xc4
+0000            121   _SPDAT          DATA 0xc5
+0000            122   _SSCON          DATA 0x93
+0000            123   _SSCS           DATA 0x94
+0000            124   _SSDAT          DATA 0x95
+0000            125   _SSADR          DATA 0x96
+0000            126   _KBLS           DATA 0x9c
+0000            127   _KBE            DATA 0x9d
+0000            128   _KBF            DATA 0x9e
+0000            129   _KBMOD          DATA 0x9f
+0000            130   _BMSEL          DATA 0x92
+0000            131   _FCON           DATA 0xd2
+0000            132   _EECON          DATA 0xd2
+0000            133   _ACSRA          DATA 0xa3
+0000            134   _ACSRB          DATA 0xab
+0000            135   _AREF           DATA 0xbd
+0000            136   _DADC           DATA 0xa4
+0000            137   _DADI           DATA 0xa5
+0000            138   _DADL           DATA 0xac
+0000            139   _DADH           DATA 0xad
+0000            140   _CCON           DATA 0xd8
+0000            141   _CMOD           DATA 0xd9
+0000            142   _CL             DATA 0xe9
+0000            143   _CH             DATA 0xf9
+0000            144   _CCAPM0         DATA 0xda
+0000            145   _CCAPM1         DATA 0xdb
+0000            146   _CCAPM2         DATA 0xdc
+0000            147   _CCAPM3         DATA 0xdd
+0000            148   _CCAPM4         DATA 0xde
+0000            149   _CCAP0H         DATA 0xfa
+0000            150   _CCAP1H         DATA 0xfb
+0000            151   _CCAP2H         DATA 0xfc
+0000            152   _CCAP3H         DATA 0xfd
+0000            153   _CCAP4H         DATA 0xfe
+0000            154   _CCAP0L         DATA 0xea
+0000            155   _CCAP1L         DATA 0xeb
+0000            156   _CCAP2L         DATA 0xec
+0000            157   _CCAP3L         DATA 0xed
+0000            158   _CCAP4L         DATA 0xee
+0000            159   ;--------------------------------------------------------
+0000            160   ; special function bits
+0000            161   ;--------------------------------------------------------
+0000            162   _ACC_0          BIT 0xe0
+0000            163   _ACC_1          BIT 0xe1
+0000            164   _ACC_2          BIT 0xe2
+0000            165   _ACC_3          BIT 0xe3
+0000            166   _ACC_4          BIT 0xe4
+0000            167   _ACC_5          BIT 0xe5
+0000            168   _ACC_6          BIT 0xe6
+0000            169   _ACC_7          BIT 0xe7
+0000            170   _B_0            BIT 0xf0
+0000            171   _B_1            BIT 0xf1
+0000            172   _B_2            BIT 0xf2
+0000            173   _B_3            BIT 0xf3
+0000            174   _B_4            BIT 0xf4
+0000            175   _B_5            BIT 0xf5
+0000            176   _B_6            BIT 0xf6
+0000            177   _B_7            BIT 0xf7
+0000            178   _P              BIT 0xd0
+0000            179   _F1             BIT 0xd1
+0000            180   _OV             BIT 0xd2
+0000            181   _RS0            BIT 0xd3
+0000            182   _RS1            BIT 0xd4
+0000            183   _F0             BIT 0xd5
+0000            184   _AC             BIT 0xd6
+0000            185   _CY             BIT 0xd7
+0000            186   _EX0            BIT 0xa8
+0000            187   _ET0            BIT 0xa9
+0000            188   _EX1            BIT 0xaa
+0000            189   _ET1            BIT 0xab
+0000            190   _ES             BIT 0xac
+0000            191   _ET2            BIT 0xad
+0000            192   _EC             BIT 0xae
+0000            193   _EA             BIT 0xaf
+0000            194   _PX0            BIT 0xb8
+0000            195   _PT0            BIT 0xb9
+0000            196   _PX1            BIT 0xba
+0000            197   _PT1            BIT 0xbb
+0000            198   _PS             BIT 0xbc
+0000            199   _PT2            BIT 0xbd
+0000            200   _IP0D           BIT 0xbf
+0000            201   _PPCL           BIT 0xbe
+0000            202   _PT2L           BIT 0xbd
+0000            203   _PLS            BIT 0xbc
+0000            204   _PT1L           BIT 0xbb
+0000            205   _PX1L           BIT 0xba
+0000            206   _PT0L           BIT 0xb9
+0000            207   _PX0L           BIT 0xb8
+0000            208   _P0_0           BIT 0x80
+0000            209   _P0_1           BIT 0x81
+0000            210   _P0_2           BIT 0x82
+0000            211   _P0_3           BIT 0x83
+0000            212   _P0_4           BIT 0x84
+0000            213   _P0_5           BIT 0x85
+0000            214   _P0_6           BIT 0x86
+0000            215   _P0_7           BIT 0x87
+0000            216   _P1_0           BIT 0x90
+0000            217   _P1_1           BIT 0x91
+0000            218   _P1_2           BIT 0x92
+0000            219   _P1_3           BIT 0x93
+0000            220   _P1_4           BIT 0x94
+0000            221   _P1_5           BIT 0x95
+0000            222   _P1_6           BIT 0x96
+0000            223   _P1_7           BIT 0x97
+0000            224   _P2_0           BIT 0xa0
+0000            225   _P2_1           BIT 0xa1
+0000            226   _P2_2           BIT 0xa2
+0000            227   _P2_3           BIT 0xa3
+0000            228   _P2_4           BIT 0xa4
+0000            229   _P2_5           BIT 0xa5
+0000            230   _P2_6           BIT 0xa6
+0000            231   _P2_7           BIT 0xa7
+0000            232   _P3_0           BIT 0xb0
+0000            233   _P3_1           BIT 0xb1
+0000            234   _P3_2           BIT 0xb2
+0000            235   _P3_3           BIT 0xb3
+0000            236   _P3_4           BIT 0xb4
+0000            237   _P3_5           BIT 0xb5
+0000            238   _P3_6           BIT 0xb6
+0000            239   _P3_7           BIT 0xb7
+0000            240   _RXD            BIT 0xb0
+0000            241   _TXD            BIT 0xb1
+0000            242   _INT0           BIT 0xb2
+0000            243   _INT1           BIT 0xb3
+0000            244   _T0             BIT 0xb4
+0000            245   _T1             BIT 0xb5
+0000            246   _WR             BIT 0xb6
+0000            247   _RD             BIT 0xb7
+0000            248   _P4_0           BIT 0xc0
+0000            249   _P4_1           BIT 0xc1
+0000            250   _P4_2           BIT 0xc2
+0000            251   _P4_3           BIT 0xc3
+0000            252   _P4_4           BIT 0xc4
+0000            253   _P4_5           BIT 0xc5
+0000            254   _P4_6           BIT 0xc6
+0000            255   _P4_7           BIT 0xc7
+0000            256   _RI             BIT 0x98
+0000            257   _TI             BIT 0x99
+0000            258   _RB8            BIT 0x9a
+0000            259   _TB8            BIT 0x9b
+0000            260   _REN            BIT 0x9c
+0000            261   _SM2            BIT 0x9d
+0000            262   _SM1            BIT 0x9e
+0000            263   _SM0            BIT 0x9f
+0000            264   _IT0            BIT 0x88
+0000            265   _IE0            BIT 0x89
+0000            266   _IT1            BIT 0x8a
+0000            267   _IE1            BIT 0x8b
+0000            268   _TR0            BIT 0x8c
+0000            269   _TF0            BIT 0x8d
+0000            270   _TR1            BIT 0x8e
+0000            271   _TF1            BIT 0x8f
+0000            272   _CP_RL2         BIT 0xc8
+0000            273   _C_T2           BIT 0xc9
+0000            274   _TR2            BIT 0xca
+0000            275   _EXEN2          BIT 0xcb
+0000            276   _TCLK           BIT 0xcc
+0000            277   _RCLK           BIT 0xcd
+0000            278   _EXF2           BIT 0xce
+0000            279   _TF2            BIT 0xcf
+0000            280   _CF             BIT 0xdf
+0000            281   _CR             BIT 0xde
+0000            282   _CCF4           BIT 0xdc
+0000            283   _CCF3           BIT 0xdb
+0000            284   _CCF2           BIT 0xda
+0000            285   _CCF1           BIT 0xd9
+0000            286   _CCF0           BIT 0xd8
+0000            287   ;--------------------------------------------------------
+0000            288   ; overlayable register banks
+0000            289   ;--------------------------------------------------------
+0000            290            rbank0 segment data overlay
+0000            291   ;--------------------------------------------------------
+0000            292   ; internal ram data
+0000            293   ;--------------------------------------------------------
+0000            294            rseg R_DSEG
+0000            295   _LCDprint_PARM_2:
+0000            296            ds 1
+0001            297   _main_string_1_50:
+0001            298            ds 5
+0006            299   _main_Voltage_1_50:
+0006            300            ds 6
+000C            301   _main_Coins_1_50:
+000C            302            ds 2
+000E            303   _main_flag_1_50:
+000E            304            ds 2
+0010            305   _main_sloc0_1_0:
+0010            306            ds 2
+0012            307   _main_sloc1_1_0:
+0012            308            ds 4
+0016            309   ;--------------------------------------------------------
+0016            310   ; overlayable items in internal ram 
+0016            311   ;--------------------------------------------------------
+0000            312            rseg    R_OSEG
+0000            313   ;--------------------------------------------------------
+0000            314   ; indirectly addressable internal ram data
+0000            315   ;--------------------------------------------------------
+0000            316            rseg R_ISEG
+0000            317   ;--------------------------------------------------------
+0000            318   ; absolute internal ram data
+0000            319   ;--------------------------------------------------------
+0000            320            DSEG
+0000            321   ;--------------------------------------------------------
+0000            322   ; bit data
+0000            323   ;--------------------------------------------------------
+0000            324            rseg R_BSEG
+0000            325   _LCDprint_PARM_3:
+0000            326            DBIT    1
+0001            327   ;--------------------------------------------------------
+0001            328   ; paged external ram data
+0001            329   ;--------------------------------------------------------
+0000            330            rseg R_PSEG
+0000            331   ;--------------------------------------------------------
+0000            332   ; external ram data
+0000            333   ;--------------------------------------------------------
+0000            334            rseg R_XSEG
+0000            335   ;--------------------------------------------------------
+0000            336   ; absolute external ram data
+0000            337   ;--------------------------------------------------------
+0000            338            XSEG
+0000            339   ;--------------------------------------------------------
+0000            340   ; external initialized ram data
+0000            341   ;--------------------------------------------------------
+0000            342            rseg R_IXSEG
+0000            343            rseg R_HOME
+0000            344            rseg R_GSINIT
+0000            345            rseg R_CSEG
+0000            346   ;--------------------------------------------------------
+0000            347   ; Reset entry point and interrupt vectors
+0000            348   ;--------------------------------------------------------
+0000            349            CSEG at 0x0000
+0000 020100     350            ljmp    _crt0
+0003            351   ;--------------------------------------------------------
+0003            352   ; global & static initialisations
+0003            353   ;--------------------------------------------------------
+0000            354            rseg R_HOME
+0000            355            rseg R_GSINIT
+0000            356            rseg R_GSINIT
+0000            357   ;--------------------------------------------------------
+0000            358   ; data variables initialization
+0000            359   ;--------------------------------------------------------
+0000            360            rseg R_DINIT
+0000            361            ; The linker places a 'ret' at the end of segment R_DINIT.
+0000            362   ;--------------------------------------------------------
+0000            363   ; code
+0000            364   ;--------------------------------------------------------
+0000            365            rseg R_CSEG
+0000            366   ;------------------------------------------------------------
+0000            367   ;Allocation info for local variables in function 'SPIWrite'
+0000            368   ;------------------------------------------------------------
+0000            369   ;out_byte                  Allocated to registers 
+0000            370   ;------------------------------------------------------------
+0000            371   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:24: unsigned char SPIWrite(unsigned char out_byte)
+0000            372   ;        -----------------------------------------
+0000            373   ;         function SPIWrite
+0000            374   ;        -----------------------------------------
+0000            375   _SPIWrite:
+0000            376            using   0
+0000 8582E0     377            mov     _ACC,dpl
+0003            378   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:29: BB_MOSI=ACC_7; BB_SCLK=1; B_7=BB_MISO; BB_SCLK=0;
+0003 A2E7       379            mov     c,_ACC_7
+0005 92A1       380            mov     _P2_1,c
+0007 D2A3       381            setb    _P2_3
+0009 A2A2       382            mov     c,_P2_2
+000B 92F7       383            mov     _B_7,c
+000D C2A3       384            clr     _P2_3
+000F            385   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:30: BB_MOSI=ACC_6; BB_SCLK=1; B_6=BB_MISO; BB_SCLK=0;
+000F A2E6       386            mov     c,_ACC_6
+0011 92A1       387            mov     _P2_1,c
+0013 D2A3       388            setb    _P2_3
+0015 A2A2       389            mov     c,_P2_2
+0017 92F6       390            mov     _B_6,c
+0019 C2A3       391            clr     _P2_3
+001B            392   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:31: BB_MOSI=ACC_5; BB_SCLK=1; B_5=BB_MISO; BB_SCLK=0;
+001B A2E5       393            mov     c,_ACC_5
+001D 92A1       394            mov     _P2_1,c
+001F D2A3       395            setb    _P2_3
+0021 A2A2       396            mov     c,_P2_2
+0023 92F5       397            mov     _B_5,c
+0025 C2A3       398            clr     _P2_3
+0027            399   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:32: BB_MOSI=ACC_4; BB_SCLK=1; B_4=BB_MISO; BB_SCLK=0;
+0027 A2E4       400            mov     c,_ACC_4
+0029 92A1       401            mov     _P2_1,c
+002B D2A3       402            setb    _P2_3
+002D A2A2       403            mov     c,_P2_2
+002F 92F4       404            mov     _B_4,c
+0031 C2A3       405            clr     _P2_3
+0033            406   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:33: BB_MOSI=ACC_3; BB_SCLK=1; B_3=BB_MISO; BB_SCLK=0;
+0033 A2E3       407            mov     c,_ACC_3
+0035 92A1       408            mov     _P2_1,c
+0037 D2A3       409            setb    _P2_3
+0039 A2A2       410            mov     c,_P2_2
+003B 92F3       411            mov     _B_3,c
+003D C2A3       412            clr     _P2_3
+003F            413   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:34: BB_MOSI=ACC_2; BB_SCLK=1; B_2=BB_MISO; BB_SCLK=0;
+003F A2E2       414            mov     c,_ACC_2
+0041 92A1       415            mov     _P2_1,c
+0043 D2A3       416            setb    _P2_3
+0045 A2A2       417            mov     c,_P2_2
+0047 92F2       418            mov     _B_2,c
+0049 C2A3       419            clr     _P2_3
+004B            420   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:35: BB_MOSI=ACC_1; BB_SCLK=1; B_1=BB_MISO; BB_SCLK=0;
+004B A2E1       421            mov     c,_ACC_1
+004D 92A1       422            mov     _P2_1,c
+004F D2A3       423            setb    _P2_3
+0051 A2A2       424            mov     c,_P2_2
+0053 92F1       425            mov     _B_1,c
+0055 C2A3       426            clr     _P2_3
+0057            427   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:36: BB_MOSI=ACC_0; BB_SCLK=1; B_0=BB_MISO; BB_SCLK=0;
+0057 A2E0       428            mov     c,_ACC_0
+0059 92A1       429            mov     _P2_1,c
+005B D2A3       430            setb    _P2_3
+005D A2A2       431            mov     c,_P2_2
+005F 92F0       432            mov     _B_0,c
+0061 C2A3       433            clr     _P2_3
+0063            434   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:38: return B;
+0063 85F082     435            mov     dpl,_B
+0066 22         436            ret
+0067            437   ;------------------------------------------------------------
+0067            438   ;Allocation info for local variables in function '_c51_external_startup'
+0067            439   ;------------------------------------------------------------
+0067            440   ;------------------------------------------------------------
+0067            441   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:41: unsigned char _c51_external_startup(void)
+0067            442   ;        -----------------------------------------
+0067            443   ;         function _c51_external_startup
+0067            444   ;        -----------------------------------------
+0067            445   __c51_external_startup:
+0067            446   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:43: AUXR=0B_0001_0001; // 1152 bytes of internal XDATA, P4.4 is a general purpose I/O
+0067 758E11     447            mov     _AUXR,#0x11
+006A            448   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:45: P0M0=0x00; P0M1=0x00;    
+006A 75E600     449            mov     _P0M0,#0x00
+006D 75E700     450            mov     _P0M1,#0x00
+0070            451   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:46: P1M0=0x00; P1M1=0x00;    
+0070 75D600     452            mov     _P1M0,#0x00
+0073 75D700     453            mov     _P1M1,#0x00
+0076            454   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:47: P2M0=0x00; P2M1=0x00;    
+0076 75CE00     455            mov     _P2M0,#0x00
+0079 75CF00     456            mov     _P2M1,#0x00
+007C            457   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:48: P3M0=0x00; P3M1=0x00;    
+007C 75C600     458            mov     _P3M0,#0x00
+007F 75C700     459            mov     _P3M1,#0x00
+0082            460   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:49: PCON|=0x80;
+0082 438780     461            orl     _PCON,#0x80
+0085            462   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:50: SCON = 0x52;
+0085 759852     463            mov     _SCON,#0x52
+0088            464   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:51: BDRCON=0;
+0088 759B00     465            mov     _BDRCON,#0x00
+008B            466   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:55: BRL=BRG_VAL;
+008B 759AF4     467            mov     _BRL,#0xF4
+008E            468   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:56: BDRCON=BRR|TBCK|RBCK|SPD;
+008E 759B1E     469            mov     _BDRCON,#0x1E
+0091            470   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:58: CLKREG=0x00; // TPS=0000B
+0091 75AE00     471            mov     _CLKREG,#0x00
+0094            472   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:60: return 0;
+0094 758200     473            mov     dpl,#0x00
+0097 22         474            ret
+0098            475   ;------------------------------------------------------------
+0098            476   ;Allocation info for local variables in function 'wait_us'
+0098            477   ;------------------------------------------------------------
+0098            478   ;x                         Allocated to registers r2 
+0098            479   ;j                         Allocated to registers r2 r3 
+0098            480   ;------------------------------------------------------------
+0098            481   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:63: void wait_us (unsigned char x)
+0098            482   ;        -----------------------------------------
+0098            483   ;         function wait_us
+0098            484   ;        -----------------------------------------
+0098            485   _wait_us:
+0098 AA82       486            mov     r2,dpl
+009A            487   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:67: TR0=0; // Stop timer 0
+009A C28C       488            clr     _TR0
+009C            489   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:68: TMOD&=0xf0; // Clear the configuration bits for timer 0
+009C 5389F0     490            anl     _TMOD,#0xF0
+009F            491   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:69: TMOD|=0x01; // Mode 1: 16-bit timer
+009F 438901     492            orl     _TMOD,#0x01
+00A2            493   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:71: if(x>5) x-=5; // Subtract the overhead
+00A2 EA         494            mov     a,r2
+00A3 24FA       495            add     a,#0xff - 0x05
+00A5 5001       496            jnc     L004002?
+00A7 EA         497            mov     a,r2
+00A8 24FB       498            add     a,#0xfb
+00AA FA         499            mov     r2,a
+00AB 8001       500            sjmp    L004003?
+00AD            501   L004002?:
+00AD            502   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:72: else x=1;
+00AD 7A01       503            mov     r2,#0x01
+00AF            504   L004003?:
+00AF            505   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:74: j=-ONE_USEC*x;
+00AF 8A00       506            mov     __mullong_PARM_2,r2
+00B1 750100     507            mov     (__mullong_PARM_2 + 1),#0x00
+00B4 750200     508            mov     (__mullong_PARM_2 + 2),#0x00
+00B7 750300     509            mov     (__mullong_PARM_2 + 3),#0x00
+00BA 90FFEA     510            mov     dptr,#0xFFEA
+00BD 74FF       511            mov     a,#0xFF
+00BF F5F0       512            mov     b,a
+00C1 120100     513            lcall   __mullong
+00C4 AA82       514            mov     r2,dpl
+00C6 AB83       515            mov     r3,dph
+00C8            516   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:75: TF0=0;
+00C8 C28D       517            clr     _TF0
+00CA            518   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:76: TH0=j/0x100;
+00CA 8B04       519            mov     ar4,r3
+00CC 7D00       520            mov     r5,#0x00
+00CE 8C8C       521            mov     _TH0,r4
+00D0            522   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:77: TL0=j%0x100;
+00D0 7B00       523            mov     r3,#0x00
+00D2 8A8A       524            mov     _TL0,r2
+00D4            525   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:78: TR0=1; // Start timer 0
+00D4 D28C       526            setb    _TR0
+00D6            527   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:79: while(TF0==0); //Wait for overflow
+00D6            528   L004004?:
+00D6 308D40     529            jnb     _TF0,L004004?
+00D9 22         530            ret
+00DA            531   ;------------------------------------------------------------
+00DA            532   ;Allocation info for local variables in function 'waitms'
+00DA            533   ;------------------------------------------------------------
+00DA            534   ;ms                        Allocated to registers r2 r3 
+00DA            535   ;j                         Allocated to registers r4 r5 
+00DA            536   ;k                         Allocated to registers r6 
+00DA            537   ;------------------------------------------------------------
+00DA            538   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:82: void waitms (unsigned int ms)
+00DA            539   ;        -----------------------------------------
+00DA            540   ;         function waitms
+00DA            541   ;        -----------------------------------------
+00DA            542   _waitms:
+00DA AA82       543            mov     r2,dpl
+00DC AB83       544            mov     r3,dph
+00DE            545   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:86: for(j=0; j<ms; j++)
+00DE 7C00       546            mov     r4,#0x00
+00E0 7D00       547            mov     r5,#0x00
+00E2            548   L005005?:
+00E2 C3         549            clr     c
+00E3 EC         550            mov     a,r4
+00E4 9A         551            subb    a,r2
+00E5 ED         552            mov     a,r5
+00E6 9B         553            subb    a,r3
+00E7 5001       554            jnc     L005009?
+00E9            555   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:87: for (k=0; k<4; k++) wait_us(250);
+00E9 7E00       556            mov     r6,#0x00
+00EB            557   L005001?:
+00EB BE0440     558            cjne    r6,#0x04,L005018?
+00EE            559   L005018?:
+00EE 5001       560            jnc     L005007?
+00F0 7582FA     561            mov     dpl,#0xFA
+00F3 C002       562            push    ar2
+00F5 C003       563            push    ar3
+00F7 C004       564            push    ar4
+00F9 C005       565            push    ar5
+00FB C006       566            push    ar6
+00FD 120100     567            lcall   _wait_us
+0100 D006       568            pop     ar6
+0102 D005       569            pop     ar5
+0104 D004       570            pop     ar4
+0106 D003       571            pop     ar3
+0108 D002       572            pop     ar2
+010A 0E         573            inc     r6
+010B 8001       574            sjmp    L005001?
+010D            575   L005007?:
+010D            576   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:86: for(j=0; j<ms; j++)
+010D 0C         577            inc     r4
+010E BC0080     578            cjne    r4,#0x00,L005005?
+0111 0D         579            inc     r5
+0112 8001       580            sjmp    L005005?
+0114            581   L005009?:
+0114 22         582            ret
+0115            583   ;------------------------------------------------------------
+0115            584   ;Allocation info for local variables in function 'GetADC'
+0115            585   ;------------------------------------------------------------
+0115            586   ;channel                   Allocated to registers r2 
+0115            587   ;adc                       Allocated to registers r3 r4 
+0115            588   ;spid                      Allocated to registers r2 
+0115            589   ;------------------------------------------------------------
+0115            590   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:91: unsigned int volatile GetADC(unsigned char channel)
+0115            591   ;        -----------------------------------------
+0115            592   ;         function GetADC
+0115            593   ;        -----------------------------------------
+0115            594   _GetADC:
+0115 AA82       595            mov     r2,dpl
+0117            596   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:96: ADC_CE=0; //Activate the MCP3008 ADC.
+0117 C2A0       597            clr     _P2_0
+0119            598   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:98: SPIWrite(0x01);//Send the start bit.
+0119 758201     599            mov     dpl,#0x01
+011C C002       600            push    ar2
+011E 120100     601            lcall   _SPIWrite
+0121 D002       602            pop     ar2
+0123            603   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:99: spid=SPIWrite((channel*0x10)|0x80);     //Send single/diff* bit, D2, D1, and D0 bits.
+0123 EA         604            mov     a,r2
+0124 C4         605            swap    a
+0125 54F0       606            anl     a,#0xf0
+0127 FA         607            mov     r2,a
+0128 7480       608            mov     a,#0x80
+012A 4A         609            orl     a,r2
+012B F582       610            mov     dpl,a
+012D 120100     611            lcall   _SPIWrite
+0130 AA82       612            mov     r2,dpl
+0132            613   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:100: adc=((spid & 0x03)*0x100);//spid has the two most significant bits of the result.
+0132 7403       614            mov     a,#0x03
+0134 5A         615            anl     a,r2
+0135 FC         616            mov     r4,a
+0136 7B00       617            mov     r3,#0x00
+0138            618   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:101: spid=SPIWrite(0x00);//It doesn't matter what we send now.
+0138 758200     619            mov     dpl,#0x00
+013B C003       620            push    ar3
+013D C004       621            push    ar4
+013F 120100     622            lcall   _SPIWrite
+0142 AA82       623            mov     r2,dpl
+0144 D004       624            pop     ar4
+0146 D003       625            pop     ar3
+0148            626   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:102: adc+=spid;//spid contains the low part of the result. 
+0148 7D00       627            mov     r5,#0x00
+014A EA         628            mov     a,r2
+014B 2B         629            add     a,r3
+014C FB         630            mov     r3,a
+014D ED         631            mov     a,r5
+014E 3C         632            addc    a,r4
+014F FC         633            mov     r4,a
+0150            634   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:104: ADC_CE=1; //Deactivate the MCP3008 ADC.
+0150 D2A0       635            setb    _P2_0
+0152            636   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:106: return adc;
+0152 8B82       637            mov     dpl,r3
+0154 8C83       638            mov     dph,r4
+0156 22         639            ret
+0157            640   ;------------------------------------------------------------
+0157            641   ;Allocation info for local variables in function 'LCD_pulse'
+0157            642   ;------------------------------------------------------------
+0157            643   ;------------------------------------------------------------
+0157            644   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:109: void LCD_pulse (void)
+0157            645   ;        -----------------------------------------
+0157            646   ;         function LCD_pulse
+0157            647   ;        -----------------------------------------
+0157            648   _LCD_pulse:
+0157            649   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:111: LCD_E=1;
+0157 D2B3       650            setb    _P3_3
+0159            651   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:112: wait_us(40);
+0159 758228     652            mov     dpl,#0x28
+015C 120100     653            lcall   _wait_us
+015F            654   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:113: LCD_E=0;
+015F C2B3       655            clr     _P3_3
+0161 22         656            ret
+0162            657   ;------------------------------------------------------------
+0162            658   ;Allocation info for local variables in function 'LCD_byte'
+0162            659   ;------------------------------------------------------------
+0162            660   ;x                         Allocated to registers r2 
+0162            661   ;------------------------------------------------------------
+0162            662   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:116: void LCD_byte (unsigned char x)
+0162            663   ;        -----------------------------------------
+0162            664   ;         function LCD_byte
+0162            665   ;        -----------------------------------------
+0162            666   _LCD_byte:
+0162 AA82       667            mov     r2,dpl
+0164            668   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:119: ACC=x; //Send high nible
+0164 8AE0       669            mov     _ACC,r2
+0166            670   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:120: LCD_D7=ACC_7;
+0166 A2E7       671            mov     c,_ACC_7
+0168 92B7       672            mov     _P3_7,c
+016A            673   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:121: LCD_D6=ACC_6;
+016A A2E6       674            mov     c,_ACC_6
+016C 92B6       675            mov     _P3_6,c
+016E            676   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:122: LCD_D5=ACC_5;
+016E A2E5       677            mov     c,_ACC_5
+0170 92B5       678            mov     _P3_5,c
+0172            679   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:123: LCD_D4=ACC_4;
+0172 A2E4       680            mov     c,_ACC_4
+0174 92B4       681            mov     _P3_4,c
+0176            682   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:124: LCD_pulse();
+0176 C002       683            push    ar2
+0178 120100     684            lcall   _LCD_pulse
+017B            685   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:125: wait_us(40);
+017B 758228     686            mov     dpl,#0x28
+017E 120100     687            lcall   _wait_us
+0181 D002       688            pop     ar2
+0183            689   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:126: ACC=x; //Send low nible
+0183 8AE0       690            mov     _ACC,r2
+0185            691   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:127: LCD_D7=ACC_3;
+0185 A2E3       692            mov     c,_ACC_3
+0187 92B7       693            mov     _P3_7,c
+0189            694   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:128: LCD_D6=ACC_2;
+0189 A2E2       695            mov     c,_ACC_2
+018B 92B6       696            mov     _P3_6,c
+018D            697   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:129: LCD_D5=ACC_1;
+018D A2E1       698            mov     c,_ACC_1
+018F 92B5       699            mov     _P3_5,c
+0191            700   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:130: LCD_D4=ACC_0;
+0191 A2E0       701            mov     c,_ACC_0
+0193 92B4       702            mov     _P3_4,c
+0195            703   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:131: LCD_pulse();
+0195 020100     704            ljmp    _LCD_pulse
+0198            705   ;------------------------------------------------------------
+0198            706   ;Allocation info for local variables in function 'WriteData'
+0198            707   ;------------------------------------------------------------
+0198            708   ;x                         Allocated to registers r2 
+0198            709   ;------------------------------------------------------------
+0198            710   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:134: void WriteData (unsigned char x)
+0198            711   ;        -----------------------------------------
+0198            712   ;         function WriteData
+0198            713   ;        -----------------------------------------
+0198            714   _WriteData:
+0198 AA82       715            mov     r2,dpl
+019A            716   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:136: LCD_RS=1;
+019A D2B2       717            setb    _P3_2
+019C            718   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:137: LCD_byte(x);
+019C 8A82       719            mov     dpl,r2
+019E 120100     720            lcall   _LCD_byte
+01A1            721   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:138: waitms(2);
+01A1 900002     722            mov     dptr,#0x0002
+01A4 020100     723            ljmp    _waitms
+01A7            724   ;------------------------------------------------------------
+01A7            725   ;Allocation info for local variables in function 'WriteCommand'
+01A7            726   ;------------------------------------------------------------
+01A7            727   ;x                         Allocated to registers r2 
+01A7            728   ;------------------------------------------------------------
+01A7            729   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:141: void WriteCommand (unsigned char x)
+01A7            730   ;        -----------------------------------------
+01A7            731   ;         function WriteCommand
+01A7            732   ;        -----------------------------------------
+01A7            733   _WriteCommand:
+01A7 AA82       734            mov     r2,dpl
+01A9            735   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:143: LCD_RS=0;
+01A9 C2B2       736            clr     _P3_2
+01AB            737   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:144: LCD_byte(x);
+01AB 8A82       738            mov     dpl,r2
+01AD 120100     739            lcall   _LCD_byte
+01B0            740   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:145: waitms(5);
+01B0 900005     741            mov     dptr,#0x0005
+01B3 020100     742            ljmp    _waitms
+01B6            743   ;------------------------------------------------------------
+01B6            744   ;Allocation info for local variables in function 'LCD_4BIT'
+01B6            745   ;------------------------------------------------------------
+01B6            746   ;------------------------------------------------------------
+01B6            747   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:148: void LCD_4BIT (void)
+01B6            748   ;        -----------------------------------------
+01B6            749   ;         function LCD_4BIT
+01B6            750   ;        -----------------------------------------
+01B6            751   _LCD_4BIT:
+01B6            752   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:150: LCD_E=0; // Resting state of LCD's enable is zero
+01B6 C2B3       753            clr     _P3_3
+01B8            754   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:152: waitms(20);
+01B8 900014     755            mov     dptr,#0x0014
+01BB 120100     756            lcall   _waitms
+01BE            757   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:154: WriteCommand(0x33);
+01BE 758233     758            mov     dpl,#0x33
+01C1 120100     759            lcall   _WriteCommand
+01C4            760   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:155: WriteCommand(0x33);
+01C4 758233     761            mov     dpl,#0x33
+01C7 120100     762            lcall   _WriteCommand
+01CA            763   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:156: WriteCommand(0x32); // Change to 4-bit mode
+01CA 758232     764            mov     dpl,#0x32
+01CD 120100     765            lcall   _WriteCommand
+01D0            766   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:159: WriteCommand(0x28);
+01D0 758228     767            mov     dpl,#0x28
+01D3 120100     768            lcall   _WriteCommand
+01D6            769   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:160: WriteCommand(0x0c);
+01D6 75820C     770            mov     dpl,#0x0C
+01D9 120100     771            lcall   _WriteCommand
+01DC            772   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:161: WriteCommand(0x01); // Clear screen command (takes some time)
+01DC 758201     773            mov     dpl,#0x01
+01DF 120100     774            lcall   _WriteCommand
+01E2            775   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:162: waitms(20); // Wait for clear screen command to finsih.
+01E2 900014     776            mov     dptr,#0x0014
+01E5 020100     777            ljmp    _waitms
+01E8            778   ;------------------------------------------------------------
+01E8            779   ;Allocation info for local variables in function 'LCDprint'
+01E8            780   ;------------------------------------------------------------
+01E8            781   ;line                      Allocated with name '_LCDprint_PARM_2'
+01E8            782   ;string                    Allocated to registers r2 r3 r4 
+01E8            783   ;j                         Allocated to registers r5 r6 
+01E8            784   ;------------------------------------------------------------
+01E8            785   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:165: void LCDprint(char * string, unsigned char line, bit clear)
+01E8            786   ;        -----------------------------------------
+01E8            787   ;         function LCDprint
+01E8            788   ;        -----------------------------------------
+01E8            789   _LCDprint:
+01E8 AA82       790            mov     r2,dpl
+01EA AB83       791            mov     r3,dph
+01EC ACF0       792            mov     r4,b
+01EE            793   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:169: WriteCommand(line==2?0xc0:0x80);
+01EE 7402       794            mov     a,#0x02
+01F0 B580C0     795            cjne    a,_LCDprint_PARM_2,L012013?
+01F3 7DC0       796            mov     r5,#0xC0
+01F5 8001       797            sjmp    L012014?
+01F7            798   L012013?:
+01F7 7D80       799            mov     r5,#0x80
+01F9            800   L012014?:
+01F9 8D82       801            mov     dpl,r5
+01FB C002       802            push    ar2
+01FD C003       803            push    ar3
+01FF C004       804            push    ar4
+0201 120100     805            lcall   _WriteCommand
+0204            806   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:170: waitms(5);
+0204 900005     807            mov     dptr,#0x0005
+0207 120100     808            lcall   _waitms
+020A D004       809            pop     ar4
+020C D003       810            pop     ar3
+020E D002       811            pop     ar2
+0210            812   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:171: for(j=0; string[j]!=0; j++)    WriteData(string[j]);// Write the message
+0210 7D00       813            mov     r5,#0x00
+0212 7E00       814            mov     r6,#0x00
+0214            815   L012003?:
+0214 ED         816            mov     a,r5
+0215 2A         817            add     a,r2
+0216 FF         818            mov     r7,a
+0217 EE         819            mov     a,r6
+0218 3B         820            addc    a,r3
+0219 F8         821            mov     r0,a
+021A 8C01       822            mov     ar1,r4
+021C 8F82       823            mov     dpl,r7
+021E 8883       824            mov     dph,r0
+0220 89F0       825            mov     b,r1
+0222 120100     826            lcall   __gptrget
+0225 FF         827            mov     r7,a
+0226 6001       828            jz      L012006?
+0228 8F82       829            mov     dpl,r7
+022A C002       830            push    ar2
+022C C003       831            push    ar3
+022E C004       832            push    ar4
+0230 C005       833            push    ar5
+0232 C006       834            push    ar6
+0234 120100     835            lcall   _WriteData
+0237 D006       836            pop     ar6
+0239 D005       837            pop     ar5
+023B D004       838            pop     ar4
+023D D003       839            pop     ar3
+023F D002       840            pop     ar2
+0241 0D         841            inc     r5
+0242 BD0040     842            cjne    r5,#0x00,L012003?
+0245 0E         843            inc     r6
+0246 8001       844            sjmp    L012003?
+0248            845   L012006?:
+0248            846   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:172: if(clear) for(; j<CHARS_PER_LINE; j++) WriteData(' '); // Clear the rest of the line
+0248 303000     847            jnb     _LCDprint_PARM_3,L012011?
+024B 8D02       848            mov     ar2,r5
+024D 8E03       849            mov     ar3,r6
+024F            850   L012007?:
+024F C3         851            clr     c
+0250 EA         852            mov     a,r2
+0251 9410       853            subb    a,#0x10
+0253 EB         854            mov     a,r3
+0254 6480       855            xrl     a,#0x80
+0256 9480       856            subb    a,#0x80
+0258 5001       857            jnc     L012011?
+025A 758220     858            mov     dpl,#0x20
+025D C002       859            push    ar2
+025F C003       860            push    ar3
+0261 120100     861            lcall   _WriteData
+0264 D003       862            pop     ar3
+0266 D002       863            pop     ar2
+0268 0A         864            inc     r2
+0269 BA0040     865            cjne    r2,#0x00,L012007?
+026C 0B         866            inc     r3
+026D 8001       867            sjmp    L012007?
+026F            868   L012011?:
+026F 22         869            ret
+0270            870   ;------------------------------------------------------------
+0270            871   ;Allocation info for local variables in function 'c4note'
+0270            872   ;------------------------------------------------------------
+0270            873   ;------------------------------------------------------------
+0270            874   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:174: void c4note(void){
+0270            875   ;        -----------------------------------------
+0270            876   ;         function c4note
+0270            877   ;        -----------------------------------------
+0270            878   _c4note:
+0270            879   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:175: TR0=0; // Stop timer 0
+0270 C28C       880            clr     _TR0
+0272            881   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:176: TMOD&=0xf0; // Clear the configuration bits for timer 0
+0272 5389F0     882            anl     _TMOD,#0xF0
+0275            883   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:177: TMOD|=0x01; // Mode 1: 16-bit timer
+0275 438901     884            orl     _TMOD,#0x01
+0278            885   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:179: TH0 = C4_RELOAD;
+0278 758C3B     886            mov     _TH0,#0x3B
+027B            887   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:180: TL0 = C4_RELOAD;
+027B 758A3B     888            mov     _TL0,#0x3B
+027E            889   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:182: RH0 = C4_RELOAD;
+027E 75F43B     890            mov     _RH0,#0x3B
+0281            891   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:183: RL0 = C4_RELOAD;
+0281 75F23B     892            mov     _RL0,#0x3B
+0284            893   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:185: ET0 = 1;
+0284 D2A9       894            setb    _ET0
+0286            895   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:186: TR0 = 1;
+0286 D28C       896            setb    _TR0
+0288            897   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:188: waitms(2000);
+0288 9007D0     898            mov     dptr,#0x07D0
+028B 020100     899            ljmp    _waitms
+028E            900   ;------------------------------------------------------------
+028E            901   ;Allocation info for local variables in function 'main'
+028E            902   ;------------------------------------------------------------
+028E            903   ;y                         Allocated to registers r2 r3 r6 r7 
+028E            904   ;Vdd                       Allocated to registers 
+028E            905   ;i                         Allocated to registers 
+028E            906   ;string                    Allocated with name '_main_string_1_50'
+028E            907   ;Voltage                   Allocated with name '_main_Voltage_1_50'
+028E            908   ;count                     Allocated to registers 
+028E            909   ;Coins                     Allocated with name '_main_Coins_1_50'
+028E            910   ;flag                      Allocated with name '_main_flag_1_50'
+028E            911   ;newround                  Allocated to registers 
+028E            912   ;sloc0                     Allocated with name '_main_sloc0_1_0'
+028E            913   ;sloc1                     Allocated with name '_main_sloc1_1_0'
+028E            914   ;------------------------------------------------------------
+028E            915   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:190: void main (void)
+028E            916   ;        -----------------------------------------
+028E            917   ;         function main
+028E            918   ;        -----------------------------------------
+028E            919   _main:
+028E            920   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:195: char string[5] = "lmao";
+028E 75906C     921            mov     _main_string_1_50,#0x6C
+0291 75916D     922            mov     (_main_string_1_50 + 0x0001),#0x6D
+0294 759261     923            mov     (_main_string_1_50 + 0x0002),#0x61
+0297 75936F     924            mov     (_main_string_1_50 + 0x0003),#0x6F
+029A 759400     925            mov     (_main_string_1_50 + 0x0004),#0x00
+029D            926   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:196: char Voltage[6] = "";
+029D 75E000     927            mov     _main_Voltage_1_50,#0x00
+02A0            928   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:198: char Coins[2] = "";
+02A0 753000     929            mov     _main_Coins_1_50,#0x00
+02A3            930   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:202: waitms(500);   
+02A3 9001F4     931            mov     dptr,#0x01F4
+02A6 120100     932            lcall   _waitms
+02A9            933   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:203: printf("\n\nAT89LP51Rx2 SPI ADC test program.\n");
+02A9 7480       934            mov     a,#__str_3
+02AB C0E0       935            push    acc
+02AD 7488       936            mov     a,#(__str_3 >> 8)
+02AF C0E0       937            push    acc
+02B1 7480       938            mov     a,#0x80
+02B3 C0E0       939            push    acc
+02B5 120100     940            lcall   _printf
+02B8 1581       941            dec     sp
+02BA 1581       942            dec     sp
+02BC 1581       943            dec     sp
+02BE            944   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:206: LCD_4BIT();
+02BE 120100     945            lcall   _LCD_4BIT
+02C1            946   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:207: LCDprint("Coins Collected:", 1, 1); //16 spaces
+02C1 758001     947            mov     _LCDprint_PARM_2,#0x01
+02C4 D230       948            setb    _LCDprint_PARM_3
+02C6 908980     949            mov     dptr,#__str_4
+02C9 75F080     950            mov     b,#0x80
+02CC 120100     951            lcall   _LCDprint
+02CF            952   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:208: LCDprint("0", 2, 1);
+02CF 758002     953            mov     _LCDprint_PARM_2,#0x02
+02D2 D230       954            setb    _LCDprint_PARM_3
+02D4 9089C0     955            mov     dptr,#__str_5
+02D7 75F080     956            mov     b,#0x80
+02DA 120100     957            lcall   _LCDprint
+02DD            958   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:210: flag = 0;
+02DD            959   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:214: while(1)
+02DD E4         960            clr     a
+02DE F570       961            mov     _main_flag_1_50,a
+02E0 F571       962            mov     (_main_flag_1_50 + 1),a
+02E2 F5B0       963            mov     _main_sloc0_1_0,a
+02E4 F5B1       964            mov     (_main_sloc0_1_0 + 1),a
+02E6            965   L014009?:
+02E6            966   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:216: MUSIC1 = 0;
+02E6 C2A5       967            clr     _P2_5
+02E8            968   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:218: y=(GetADC(i)*Vdd)/1023.0; // Convert the 10-bit integer from the ADC to voltage
+02E8 758200     969            mov     dpl,#0x00
+02EB 120100     970            lcall   _GetADC
+02EE 120100     971            lcall   ___uint2fs
+02F1 AE82       972            mov     r6,dpl
+02F3 AF83       973            mov     r7,dph
+02F5 AAF0       974            mov     r2,b
+02F7 FB         975            mov     r3,a
+02F8 743C       976            mov     a,#0x3C
+02FA C0E0       977            push    acc
+02FC 7414       978            mov     a,#0x14
+02FE C0E0       979            push    acc
+0300 7483       980            mov     a,#0x83
+0302 C0E0       981            push    acc
+0304 7440       982            mov     a,#0x40
+0306 C0E0       983            push    acc
+0308 8E82       984            mov     dpl,r6
+030A 8F83       985            mov     dph,r7
+030C 8AF0       986            mov     b,r2
+030E EB         987            mov     a,r3
+030F 120100     988            lcall   ___fsmul
+0312 AA82       989            mov     r2,dpl
+0314 AB83       990            mov     r3,dph
+0316 AEF0       991            mov     r6,b
+0318 FF         992            mov     r7,a
+0319 E581       993            mov     a,sp
+031B 24FC       994            add     a,#0xfc
+031D F581       995            mov     sp,a
+031F E4         996            clr     a
+0320 C0E0       997            push    acc
+0322 74C0       998            mov     a,#0xC0
+0324 C0E0       999            push    acc
+0326 747F      1000            mov     a,#0x7F
+0328 C0E0      1001            push    acc
+032A 7444      1002            mov     a,#0x44
+032C C0E0      1003            push    acc
+032E 8A82      1004            mov     dpl,r2
+0330 8B83      1005            mov     dph,r3
+0332 8EF0      1006            mov     b,r6
+0334 EF        1007            mov     a,r7
+0335 120100    1008            lcall   ___fsdiv
+0338 AA82      1009            mov     r2,dpl
+033A AB83      1010            mov     r3,dph
+033C AEF0      1011            mov     r6,b
+033E FF        1012            mov     r7,a
+033F E581      1013            mov     a,sp
+0341 24FC      1014            add     a,#0xfc
+0343 F581      1015            mov     sp,a
+0345           1016   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:219: printf("V:%f\n",y);
+0345 C002      1017            push    ar2
+0347 C003      1018            push    ar3
+0349 C006      1019            push    ar6
+034B C007      1020            push    ar7
+034D C002      1021            push    ar2
+034F C003      1022            push    ar3
+0351 C006      1023            push    ar6
+0353 C007      1024            push    ar7
+0355 7400      1025            mov     a,#__str_6
+0357 C0E0      1026            push    acc
+0359 748B      1027            mov     a,#(__str_6 >> 8)
+035B C0E0      1028            push    acc
+035D 7480      1029            mov     a,#0x80
+035F C0E0      1030            push    acc
+0361 120100    1031            lcall   _printf
+0364 E581      1032            mov     a,sp
+0366 24F9      1033            add     a,#0xf9
+0368 F581      1034            mov     sp,a
+036A D007      1035            pop     ar7
+036C D006      1036            pop     ar6
+036E D003      1037            pop     ar3
+0370 D002      1038            pop     ar2
+0372           1039   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:223: if(y>3.23){
+0372 7452      1040            mov     a,#0x52
+0374 C0E0      1041            push    acc
+0376 74B8      1042            mov     a,#0xB8
+0378 C0E0      1043            push    acc
+037A 744E      1044            mov     a,#0x4E
+037C C0E0      1045            push    acc
+037E 7440      1046            mov     a,#0x40
+0380 C0E0      1047            push    acc
+0382 8A82      1048            mov     dpl,r2
+0384 8B83      1049            mov     dph,r3
+0386 8EF0      1050            mov     b,r6
+0388 EF        1051            mov     a,r7
+0389 120100    1052            lcall   ___fsgt
+038C AC82      1053            mov     r4,dpl
+038E E581      1054            mov     a,sp
+0390 24FC      1055            add     a,#0xfc
+0392 F581      1056            mov     sp,a
+0394 EC        1057            mov     a,r4
+0395 7001      1058            jnz     L014017?
+0397 020100    1059            ljmp    L014009?
+039A           1060   L014017?:
+039A           1061   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:224: MUSIC1 = 1;
+039A D2A5      1062            setb    _P2_5
+039C           1063   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:225: count++;
+039C 05B0      1064            inc     _main_sloc0_1_0
+039E E4        1065            clr     a
+039F B5B0C0    1066            cjne    a,_main_sloc0_1_0,L014018?
+03A2 05B1      1067            inc     (_main_sloc0_1_0 + 1)
+03A4           1068   L014018?:
+03A4           1069   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:226: printf("%d", count);
+03A4 C0B0      1070            push    _main_sloc0_1_0
+03A6 C0B1      1071            push    (_main_sloc0_1_0 + 1)
+03A8 7400      1072            mov     a,#__str_7
+03AA C0E0      1073            push    acc
+03AC 748C      1074            mov     a,#(__str_7 >> 8)
+03AE C0E0      1075            push    acc
+03B0 7480      1076            mov     a,#0x80
+03B2 C0E0      1077            push    acc
+03B4 120100    1078            lcall   _printf
+03B7 E581      1079            mov     a,sp
+03B9 24FB      1080            add     a,#0xfb
+03BB F581      1081            mov     sp,a
+03BD           1082   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:227: sprintf(Coins, "%d", count);
+03BD C0B0      1083            push    _main_sloc0_1_0
+03BF C0B1      1084            push    (_main_sloc0_1_0 + 1)
+03C1 7400      1085            mov     a,#__str_7
+03C3 C0E0      1086            push    acc
+03C5 748C      1087            mov     a,#(__str_7 >> 8)
+03C7 C0E0      1088            push    acc
+03C9 7480      1089            mov     a,#0x80
+03CB C0E0      1090            push    acc
+03CD 7430      1091            mov     a,#_main_Coins_1_50
+03CF C0E0      1092            push    acc
+03D1 7482      1093            mov     a,#(_main_Coins_1_50 >> 8)
+03D3 C0E0      1094            push    acc
+03D5 7440      1095            mov     a,#0x40
+03D7 C0E0      1096            push    acc
+03D9 120100    1097            lcall   _sprintf
+03DC E581      1098            mov     a,sp
+03DE 24F8      1099            add     a,#0xf8
+03E0 F581      1100            mov     sp,a
+03E2           1101   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:228: LCDprint(Coins, 2 ,1);
+03E2 758002    1102            mov     _LCDprint_PARM_2,#0x02
+03E5 D230      1103            setb    _LCDprint_PARM_3
+03E7 908230    1104            mov     dptr,#_main_Coins_1_50
+03EA 75F040    1105            mov     b,#0x40
+03ED 120100    1106            lcall   _LCDprint
+03F0           1107   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:229: printf("flag: %d", flag);
+03F0 C070      1108            push    _main_flag_1_50
+03F2 C071      1109            push    (_main_flag_1_50 + 1)
+03F4 7480      1110            mov     a,#__str_8
+03F6 C0E0      1111            push    acc
+03F8 748C      1112            mov     a,#(__str_8 >> 8)
+03FA C0E0      1113            push    acc
+03FC 7480      1114            mov     a,#0x80
+03FE C0E0      1115            push    acc
+0400 120100    1116            lcall   _printf
+0403 E581      1117            mov     a,sp
+0405 24FB      1118            add     a,#0xfb
+0407 F581      1119            mov     sp,a
+0409           1120   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:230: while(1){
+0409           1121   L014004?:
+0409           1122   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:232: MUSIC1 = 1;
+0409 D2A5      1123            setb    _P2_5
+040B           1124   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:233: waitms(500);
+040B 9001F4    1125            mov     dptr,#0x01F4
+040E 120100    1126            lcall   _waitms
+0411           1127   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:234: y=(GetADC(i)*Vdd)/1023.0;
+0411 758200    1128            mov     dpl,#0x00
+0414 120100    1129            lcall   _GetADC
+0417 120100    1130            lcall   ___uint2fs
+041A 8582F0    1131            mov     _main_sloc1_1_0,dpl
+041D 8583F1    1132            mov     (_main_sloc1_1_0 + 1),dph
+0420 85F0F2    1133            mov     (_main_sloc1_1_0 + 2),b
+0423 F5F3      1134            mov     (_main_sloc1_1_0 + 3),a
+0425 743C      1135            mov     a,#0x3C
+0427 C0E0      1136            push    acc
+0429 7414      1137            mov     a,#0x14
+042B C0E0      1138            push    acc
+042D 7483      1139            mov     a,#0x83
+042F C0E0      1140            push    acc
+0431 7440      1141            mov     a,#0x40
+0433 C0E0      1142            push    acc
+0435 85F082    1143            mov     dpl,_main_sloc1_1_0
+0438 85F183    1144            mov     dph,(_main_sloc1_1_0 + 1)
+043B 85F2F0    1145            mov     b,(_main_sloc1_1_0 + 2)
+043E E5F3      1146            mov     a,(_main_sloc1_1_0 + 3)
+0440 120100    1147            lcall   ___fsmul
+0443 8582F0    1148            mov     _main_sloc1_1_0,dpl
+0446 8583F1    1149            mov     (_main_sloc1_1_0 + 1),dph
+0449 85F0F2    1150            mov     (_main_sloc1_1_0 + 2),b
+044C F5F3      1151            mov     (_main_sloc1_1_0 + 3),a
+044E E581      1152            mov     a,sp
+0450 24FC      1153            add     a,#0xfc
+0452 F581      1154            mov     sp,a
+0454 E4        1155            clr     a
+0455 C0E0      1156            push    acc
+0457 74C0      1157            mov     a,#0xC0
+0459 C0E0      1158            push    acc
+045B 747F      1159            mov     a,#0x7F
+045D C0E0      1160            push    acc
+045F 7444      1161            mov     a,#0x44
+0461 C0E0      1162            push    acc
+0463 85F082    1163            mov     dpl,_main_sloc1_1_0
+0466 85F183    1164            mov     dph,(_main_sloc1_1_0 + 1)
+0469 85F2F0    1165            mov     b,(_main_sloc1_1_0 + 2)
+046C E5F3      1166            mov     a,(_main_sloc1_1_0 + 3)
+046E 120100    1167            lcall   ___fsdiv
+0471 AA82      1168            mov     r2,dpl
+0473 AB83      1169            mov     r3,dph
+0475 AEF0      1170            mov     r6,b
+0477 FF        1171            mov     r7,a
+0478 E581      1172            mov     a,sp
+047A 24FC      1173            add     a,#0xfc
+047C F581      1174            mov     sp,a
+047E           1175   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:235: printf("V: %f\n",y);
+047E C002      1176            push    ar2
+0480 C003      1177            push    ar3
+0482 C006      1178            push    ar6
+0484 C007      1179            push    ar7
+0486 C002      1180            push    ar2
+0488 C003      1181            push    ar3
+048A C006      1182            push    ar6
+048C C007      1183            push    ar7
+048E 7400      1184            mov     a,#__str_9
+0490 C0E0      1185            push    acc
+0492 748D      1186            mov     a,#(__str_9 >> 8)
+0494 C0E0      1187            push    acc
+0496 7480      1188            mov     a,#0x80
+0498 C0E0      1189            push    acc
+049A 120100    1190            lcall   _printf
+049D E581      1191            mov     a,sp
+049F 24F9      1192            add     a,#0xf9
+04A1 F581      1193            mov     sp,a
+04A3 D007      1194            pop     ar7
+04A5 D006      1195            pop     ar6
+04A7 D003      1196            pop     ar3
+04A9 D002      1197            pop     ar2
+04AB           1198   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:236: if(y<1){
+04AB E4        1199            clr     a
+04AC C0E0      1200            push    acc
+04AE C0E0      1201            push    acc
+04B0 7480      1202            mov     a,#0x80
+04B2 C0E0      1203            push    acc
+04B4 743F      1204            mov     a,#0x3F
+04B6 C0E0      1205            push    acc
+04B8 8A82      1206            mov     dpl,r2
+04BA 8B83      1207            mov     dph,r3
+04BC 8EF0      1208            mov     b,r6
+04BE EF        1209            mov     a,r7
+04BF 120100    1210            lcall   ___fslt
+04C2 AA82      1211            mov     r2,dpl
+04C4 E581      1212            mov     a,sp
+04C6 24FC      1213            add     a,#0xfc
+04C8 F581      1214            mov     sp,a
+04CA EA        1215            mov     a,r2
+04CB 7001      1216            jnz     L014019?
+04CD 020100    1217            ljmp    L014004?
+04D0           1218   L014019?:
+04D0           1219   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:237: flag = 0;
+04D0           1220   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:238: printf("flag: %d", flag);
+04D0 E4        1221            clr     a
+04D1 F570      1222            mov     _main_flag_1_50,a
+04D3 F571      1223            mov     (_main_flag_1_50 + 1),a
+04D5 C0E0      1224            push    acc
+04D7 C0E0      1225            push    acc
+04D9 7480      1226            mov     a,#__str_8
+04DB C0E0      1227            push    acc
+04DD 748C      1228            mov     a,#(__str_8 >> 8)
+04DF C0E0      1229            push    acc
+04E1 7480      1230            mov     a,#0x80
+04E3 C0E0      1231            push    acc
+04E5 120100    1232            lcall   _printf
+04E8 E581      1233            mov     a,sp
+04EA 24FB      1234            add     a,#0xfb
+04EC F581      1235            mov     sp,a
+04EE           1236   ;        C:\Users\alexj\Documents\ELEC2\ELEC291\Lab5\AT89LP51Rx2_make_projects\LCD\adc_spi.c:239: break;
+04EE 020100    1237            ljmp    L014009?
+04F1           1238            rseg R_CSEG
+04F1           1239   
+0000           1240            rseg R_XINIT
+0000           1241   
+0000           1242            rseg R_CONST
+0000           1243   __str_3:
+0000 0A        1244            db 0x0A
+0001 0A        1245            db 0x0A
+0002 41543839  1246            db 'AT89LP51Rx2 SPI ADC test program.'
+     4C503531
+     52783220
+     53504920
+     41444320
+     74657374
+     2070726F
+     6772616D
+     2E
+0023 0A        1247            db 0x0A
+0024 00        1248            db 0x00
+0025           1249   __str_4:
+0025 436F696E  1250            db 'Coins Collected:'
+     7320436F
+     6C6C6563
+     7465643A
+0035 00        1251            db 0x00
+0036           1252   __str_5:
+0036 30        1253            db '0'
+0037 00        1254            db 0x00
+0038           1255   __str_6:
+0038 563A2566  1256            db 'V:%f'
+003C 0A        1257            db 0x0A
+003D 00        1258            db 0x00
+003E           1259   __str_7:
+003E 2564      1260            db '%d'
+0040 00        1261            db 0x00
+0041           1262   __str_8:
+0041 666C6167  1263            db 'flag: %d'
+     3A202564
+0049 00        1264            db 0x00
+004A           1265   __str_9:
+004A 563A2025  1266            db 'V: %f'
+     66
+004F 0A        1267            db 0x0A
+0050 00        1268            db 0x00
+0051           1269   
+0003           1270            CSEG
+0003           1271   
+0003           1272   end
