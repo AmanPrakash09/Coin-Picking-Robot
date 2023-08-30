@@ -1,4 +1,4 @@
-# Project2
+# Coin Picking Robot
 
 Robot Description: 
 
